@@ -2,12 +2,20 @@
 import { Button } from "@/components/ui/button";
 import { GraduationCap, Menu, X } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleLoginClick = () => {
-    window.location.href = "/login";
+    navigate("/login");
+  };
+
+  const handleDashboardClick = () => {
+    navigate("/dashboard");
   };
 
   return (
@@ -17,11 +25,15 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex items-center space-x-3">
             <div className="bg-accent-yellow p-2 rounded-lg">
-              <GraduationCap className="h-6 w-6 text-primary-dark" />
+              <img 
+                src="/lovable-uploads/5e5e00dc-1ec5-4ba0-8cd2-32b48c1ba4c4.png" 
+                alt="Logo" 
+                className="h-6 w-6"
+              />
             </div>
             <div className="text-white">
-              <h1 className="text-lg font-bold">SUVIDHA FOUNDATION</h1>
-              <p className="text-xs text-gray-300">TPO Management Portal</p>
+              <h1 className="text-lg font-bold">TPO MANAGEMENT PORTAL</h1>
+              <p className="text-xs text-gray-300">Training & Placement Officer Portal</p>
             </div>
           </div>
 
@@ -36,12 +48,21 @@ const Navbar = () => {
             <a href="#contact" className="text-white hover:text-accent-yellow transition-colors">
               Contact
             </a>
-            <Button 
-              onClick={handleLoginClick}
-              className="bg-accent-yellow text-primary-dark hover:bg-yellow-400 font-semibold"
-            >
-              Login
-            </Button>
+            {user ? (
+              <Button 
+                onClick={handleDashboardClick}
+                className="bg-accent-yellow text-primary-dark hover:bg-yellow-400 font-semibold"
+              >
+                Dashboard
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleLoginClick}
+                className="bg-accent-yellow text-primary-dark hover:bg-yellow-400 font-semibold"
+              >
+                Login
+              </Button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -78,12 +99,21 @@ const Navbar = () => {
                 Contact
               </a>
               <div className="px-3 py-2">
-                <Button 
-                  onClick={handleLoginClick}
-                  className="w-full bg-accent-yellow text-primary-dark hover:bg-yellow-400 font-semibold"
-                >
-                  Login
-                </Button>
+                {user ? (
+                  <Button 
+                    onClick={handleDashboardClick}
+                    className="w-full bg-accent-yellow text-primary-dark hover:bg-yellow-400 font-semibold"
+                  >
+                    Dashboard
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={handleLoginClick}
+                    className="w-full bg-accent-yellow text-primary-dark hover:bg-yellow-400 font-semibold"
+                  >
+                    Login
+                  </Button>
+                )}
               </div>
             </div>
           </div>

@@ -1,18 +1,30 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraduationCap, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const { toast } = useToast();
+  const { signIn, signUp, user } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,32 +47,45 @@ const Login = () => {
       return;
     }
 
+    if (password.length < 6) {
+      toast({
+        title: "Invalid Password",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual authentication API call
-      // Simulating login for now
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo purposes, accepting any valid email/password combination
-      if (email && password.length >= 6) {
-        localStorage.setItem("isAuthenticated", "true");
-        localStorage.setItem("userEmail", email);
-        
-        toast({
-          title: "Login Successful",
-          description: "Welcome to TPO Management Portal",
-        });
-        
-        // Redirect to dashboard
-        window.location.href = "/dashboard";
+      let result;
+      if (isSignUp) {
+        result = await signUp(email, password);
+        if (!result.error) {
+          toast({
+            title: "Account Created",
+            description: "Please check your email to verify your account",
+          });
+        }
       } else {
-        throw new Error("Invalid credentials");
+        result = await signIn(email, password);
+        if (!result.error) {
+          toast({
+            title: "Login Successful",
+            description: "Welcome to TPO Management Portal",
+          });
+          navigate("/dashboard");
+        }
       }
-    } catch (error) {
+
+      if (result.error) {
+        throw result.error;
+      }
+    } catch (error: any) {
       toast({
-        title: "Login Failed",
-        description: "Invalid email or password. Password must be at least 6 characters.",
+        title: isSignUp ? "Signup Failed" : "Login Failed",
+        description: error.message || "An error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -78,10 +103,10 @@ const Login = () => {
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-primary-dark">
-            SUVIDHA FOUNDATION
+            TPO MANAGEMENT PORTAL
           </CardTitle>
           <CardDescription className="text-secondary-blue">
-            TPO Management Portal - Secure Login
+            {isSignUp ? "Create your account" : "Secure Login"}
           </CardDescription>
         </CardHeader>
         
@@ -131,14 +156,23 @@ const Login = () => {
               className="w-full bg-accent-yellow text-primary-dark hover:bg-yellow-400 font-semibold py-2 h-12"
               disabled={isLoading}
             >
-              {isLoading ? "Signing In..." : "Sign In"}
+              {isLoading 
+                ? (isSignUp ? "Creating Account..." : "Signing In...") 
+                : (isSignUp ? "Create Account" : "Sign In")
+              }
             </Button>
           </form>
           
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Demo credentials: Any valid email and password (6+ characters)
-            </p>
+            <button
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-sm text-secondary-blue hover:underline"
+            >
+              {isSignUp 
+                ? "Already have an account? Sign in" 
+                : "Don't have an account? Sign up"
+              }
+            </button>
           </div>
         </CardContent>
       </Card>
